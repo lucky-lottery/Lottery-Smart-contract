@@ -1,7 +1,9 @@
 require('dotenv').config();
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const { TruffleProvider } = require('@harmony-js/core')
+
 const mnemonic = process.env.MNEMONIC;
+const infuraProjectId = process.env["INFURA_PROJECT_ID"];
 
 module.exports = {
   plugins: ['truffle-plugin-verify'],
@@ -49,7 +51,7 @@ module.exports = {
             'Please enter a private key with funds, you can use the default one'
           );
         }
-        return new HDWalletProvider(mnemonic, `wss://ws-matic-mumbai.chainstacklabs.com`)
+        return new HDWalletProvider(mnemonic, "https://rpc-mumbai.maticvigil.com/v1/" + infuraProjectId)
       },
       network_id: 80001,
       confirmations: 2,
@@ -63,24 +65,11 @@ module.exports = {
             'Please enter a private key with funds, you can use the default one'
           );
         }
-        return new HDWalletProvider(mnemonic, `wss://ws-matic-mainnet.chainstacklabs.com`)
+        return new HDWalletProvider(mnemonic, "https://rpc-mainnet.maticvigil.com/v1/" + infuraProjectId)
       },
       network_id: 137,
       confirmations: 2,
       timeoutBlocks: 200,
-      skipDryRun: true
-    },
-    harmony: {
-      provider: () => {
-        if (!mnemonic.trim()) {
-          throw new Error(
-            'Please enter a private key with funds, you can use the default one'
-          );
-        }
-        return new HDWalletProvider(mnemonic, `https://api.s0.t.hmny.io`)
-      },
-      gas: 0x7a1200,
-      network_id: 1666600000,
       skipDryRun: true
     }
   },
