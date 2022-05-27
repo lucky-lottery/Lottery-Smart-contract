@@ -1,4 +1,4 @@
-const BEP20Token = artifacts.require("LotteryToken.sol");
+const LotteryToken = artifacts.require("LotteryToken.sol");
 module.exports = function (deployer){
-    deployer.deploy(BEP20Token);
+    deployer.deploy(LotteryToken);
 };

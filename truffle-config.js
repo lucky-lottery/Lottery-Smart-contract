@@ -26,8 +26,7 @@ module.exports = {
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      gasPrice: 0x7a1200,
-      skipDryRun: false
+      skipDryRun: true
     },
     bsc: {
       provider: () =>{ 
@@ -41,8 +40,7 @@ module.exports = {
       network_id: 56,
       confirmations: 10,
       timeoutBlocks: 200,
-      gasPrice: 0x7a1400,
-      skipDryRun: false
+      skipDryRun: true
     },
     mumbai: {
       provider: () => {
@@ -53,8 +51,9 @@ module.exports = {
         }
         return new HDWalletProvider(mnemonic, `wss://ws-matic-mumbai.chainstacklabs.com`)
       },
-      gas: 0x7a1200,
       network_id: 80001,
+      confirmations: 2,
+      timeoutBlocks: 200,
       skipDryRun: true
     },
     polygon: {
@@ -66,8 +65,9 @@ module.exports = {
         }
         return new HDWalletProvider(mnemonic, `wss://ws-matic-mainnet.chainstacklabs.com`)
       },
-      gas: 0x7a1200,
       network_id: 137,
+      confirmations: 2,
+      timeoutBlocks: 200,
       skipDryRun: true
     },
     harmony: {
