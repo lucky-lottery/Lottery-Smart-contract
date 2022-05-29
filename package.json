@@ -1,27 +1,30 @@
 {
   "name": "lottery",
-  "version": "1.0.0",
-  "description": "",
-  "main": "truffle-config.js",
+  "version": "2.0.0",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "clean": "rm -rf artifacts && rm -rf cache && rm -rf coverage && rm -rf coverage.json && rm -rf .solcover.js && rm -rf yarn.lock",
+    "cover": "npx hardhat coverage",
+    "deploy:testnet": "hardhat run --network bsctestnet scripts/deploy.js"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@harmony-js/core": "^0.1.57",
+    "@chainlink/contracts": "0.4.1",
     "@openzeppelin/contracts": "^4.6.0",
-    "@truffle/hdwallet-provider": "^2.0.8",
-    "dotenv": "^16.0.1",
-    "npm": "^8.10.0",
-    "original-require": "^1.0.1",
-    "socket.io": "^4.5.1",
-    "truffle-hdwallet-provider": "^1.0.6",
-    "tslib": "^2.4.0"
+    "@pancakeswap/pancake-swap-lib": "0.0.4",
+    "bignumber.js": "9.0.1",
+    "dotenv": "8.2.0",
+    "hardhat": "^2.9.6",
+    "hardhat-gas-reporter": "1.0.4",
+    "solidity-coverage": "^0.7.0"
   },
   "devDependencies": {
-    "hardhat": "^2.9.6",
-    "mocha": "^10.0.0",
-    "truffle-plugin-verify": "^0.5.25"
+    "@nomiclabs/buidler": "^1.4.8",
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.8"
   }
 }

@@ -2,7 +2,7 @@
 artifacts
 .idea/
 node_modules
-# to_nuke
+to_nuke
 cache
 .env
 yarn.lock
