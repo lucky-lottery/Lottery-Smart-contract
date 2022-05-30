@@ -10,7 +10,7 @@
     "deploy:testnet": "hardhat run --network bsctestnet scripts/deploy.js"
   },
   "dependencies": {
-    "@chainlink/contracts": "0.4.1",
+    "@chainlink/contracts": "^0.4.1",
     "@openzeppelin/contracts": "^4.6.0",
     "@pancakeswap/pancake-swap-lib": "0.0.4",
     "bignumber.js": "9.0.1",
