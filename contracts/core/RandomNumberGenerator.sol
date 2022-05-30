@@ -52,7 +52,7 @@ contract RandomNumberGenerator is VRFConsumerBase {
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        ILottery(requester).numbersDrawn(
+        ILottery(requester).  (
             currentLotteryId,
             requestId,
             randomness

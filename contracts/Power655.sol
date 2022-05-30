@@ -36,14 +36,14 @@ contract Power655 is Ownable, ReentrancyGuard, IPower655{
     }
 
     uint256 public maxNumberTickets = 10;
-    uint256 public priceOfTikect = 1000000000000000000;
+    uint256 public priceOfTikect = 1**18;
 
     uint256 public currentLotteryId;
     uint256 public currentTicketId;
 
     uint256 public constant MIN_LENGTH_LOTTERY = 3 days -5 minutes;
     uint256 public constant MAX_LENGTH_LOTTERY = 3 days +5 minutes;
-    uint256 public constant MAX_TRANSACTION_FEE = 200000000000000000; // 20%
+    uint256 public constant MAX_TRANSACTION_FEE = 2**17; // 20%
 
     event NewRandomGenerator(address indexed randomGenerator);
     event NewMaxNumberTickets(uint256 indexed maxNumberTickets);

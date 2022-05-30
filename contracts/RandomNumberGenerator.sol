@@ -10,12 +10,18 @@ import "./interfaces/IPancakeSwapLottery.sol";
 contract RandomNumberGenerator is VRFConsumerBase, IRandomNumberGenerator, Ownable {
     using SafeERC20 for IERC20;
 
-    address public guitarLottery;
+    address public lottery;
     bytes32 public keyHash;
     bytes32 public latestRequestId;
     uint32 public randomResult;
     uint256 public fee;
     uint256 public latestLotteryId;
+
+    modifier onlyLottery() {
+        require(msg.sender == lottery, "Only Lottery can call function");
+        _;
+    }
+
 
     /**
      * @notice Constructor
@@ -32,11 +38,9 @@ contract RandomNumberGenerator is VRFConsumerBase, IRandomNumberGenerator, Ownab
     /**
      * @notice Request randomness from a user-provided seed
      */
-    function getRandomNumber() external override {
-        require(msg.sender == guitarLottery, "Only GuitarLottery");
+    function getRandomNumber() external override onlyOwner {
         require(keyHash != bytes32(0), "Must have valid key hash");
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK tokens");
-
         latestRequestId = requestRandomness(keyHash, fee);
     }
 
@@ -62,20 +66,10 @@ contract RandomNumberGenerator is VRFConsumerBase, IRandomNumberGenerator, Ownab
 
     /**
      * @notice Set the address for the GuitarLottery
-     * @param _guitarLottery: address of the GuitarSwap lottery
+     * @param _lottery: address of the GuitarSwap lottery
      */
-    function setLotteryAddress(address _guitarLottery) external onlyOwner {
-        guitarLottery = _guitarLottery;
-    }
-
-    /**
-     * @notice It allows the admin to withdraw tokens sent to the contract
-     * @param _tokenAddress: the address of the token to withdraw
-     * @param _tokenAmount: the number of token amount to withdraw
-     * @dev Only callable by owner.
-     */
-    function withdrawTokens(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
-        IERC20(_tokenAddress).safeTransfer(address(msg.sender), _tokenAmount);
+    function setLotteryAddress(address _lottery) external onlyOwner {
+        lottery = _lottery;
     }
 
     /**
@@ -98,6 +92,6 @@ contract RandomNumberGenerator is VRFConsumerBase, IRandomNumberGenerator, Ownab
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         require(latestRequestId == requestId, "Wrong requestId");
         randomResult = uint32(1000000 + (randomness % 1000000));
-        latestLotteryId = IPancakeSwapLottery(guitarLottery).viewCurrentLotteryId();
+        latestLotteryId = IPancakeSwapLottery(lottery).viewCurrentLotteryId();
     }
 }
