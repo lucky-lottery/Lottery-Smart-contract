@@ -79,10 +79,7 @@ contract LotteryNFT is ERC1155, Ownable, Testable {
         string memory _uri,
         address _lotto,
         address _timer
-    ) 
-    ERC1155(_uri)
-    Testable(_timer)
-    {
+    ) ERC1155(_uri) Testable(_timer){
         // Only Lotto contract will be able to mint new tokens
         lotteryContract_ = _lotto;
     }
@@ -101,11 +98,7 @@ contract LotteryNFT is ERC1155, Ownable, Testable {
      */
     function getTicketNumbers(
         uint256 _ticketID
-    ) 
-        external 
-        view 
-        returns(uint16[] memory) 
-    {
+    ) external view returns(uint16[] memory) {
         return ticketInfo_[_ticketID].numbers;
     }
 
@@ -115,32 +108,20 @@ contract LotteryNFT is ERC1155, Ownable, Testable {
      */
     function getOwnerOfTicket(
         uint256 _ticketID
-    ) 
-        external 
-        view 
-        returns(address) 
-    {
+    ) external view returns(address) {
         return ticketInfo_[_ticketID].owner;
     }
 
     function getTicketClaimStatus(
         uint256 _ticketID
-    ) 
-        external 
-        view
-        returns(bool) 
-    {
+    ) external view returns(bool) {
         return ticketInfo_[_ticketID].claimed;
     }
 
     function getUserTickets(
         uint256 _lotteryId,
         address _user
-    ) 
-        external 
-        view 
-        returns(uint256[] memory) 
-    {
+    ) external view returns(uint256[] memory) {
         return userTickets_[_user][_lotteryId];
     }
 
@@ -149,11 +130,7 @@ contract LotteryNFT is ERC1155, Ownable, Testable {
         uint256 _lotteryId,
         uint256 cursor, 
         uint256 size
-    ) 
-        external 
-        view 
-        returns (uint256[] memory, uint256) 
-    {
+    ) external view returns (uint256[] memory, uint256) {
         uint256 length = size;
         if (length > userTickets_[_user][_lotteryId].length - cursor) {
             length = userTickets_[_user][_lotteryId].length - cursor;
@@ -181,11 +158,7 @@ contract LotteryNFT is ERC1155, Ownable, Testable {
         uint8 _numberOfTickets,
         uint16[] calldata _numbers,
         uint8 sizeOfLottery
-    )
-        external
-        onlyLotto()
-        returns(uint256[] memory)
-    {
+    ) external onlyLotto() returns(uint256[] memory){
         // Storage for the amount of tokens to mint (always 1)
         uint256[] memory amounts = new uint256[](_numberOfTickets);
         // Storage for the token IDs

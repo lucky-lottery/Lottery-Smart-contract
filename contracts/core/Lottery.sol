@@ -71,9 +71,9 @@ contract Lottery is Ownable, Initializable, Testable {
         uint256 prizePoolInCake;    // The amount of cake for prize money
         uint256 costPerTicket;      // Cost per ticket in $cake
         uint8[] prizeDistribution;  // The distribution for prize money
-        uint256 startingTimestamp;      // Block timestamp for star of lotto
-        uint256 closingTimestamp;       // Block timestamp for end of entries
-        uint16[] winningNumbers;     // The winning numbers
+        uint256 startingTimestamp;  // Block timestamp for star of lotto
+        uint256 closingTimestamp;   // Block timestamp for end of entries
+        uint16[] winningNumbers;    // The winning numbers
     }
     // Lottery ID's to info
     mapping(uint256 => LottoInfo) internal allLotteries_;
@@ -203,11 +203,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function costToBuyTickets(
         uint256 _lotteryId,
         uint256 _numberOfTickets
-    ) 
-        external 
-        view 
-        returns(uint256 totalCost) 
-    {
+    )  external view  returns(uint256 totalCost)  {
         uint256 pricePer = allLotteries_[_lotteryId].costPerTicket;
         totalCost = pricePer.mul(_numberOfTickets);
     }
@@ -215,27 +211,14 @@ contract Lottery is Ownable, Initializable, Testable {
     function costToBuyTicketsWithDiscount(
         uint256 _lotteryId,
         uint256 _numberOfTickets
-    ) 
-        external 
-        view 
-        returns(
-            uint256 cost, 
-            uint256 discount, 
-            uint256 costWithDiscount
-        ) 
-    {
+    )  external view returns(uint256 cost, uint256 discount, uint256 costWithDiscount)  {
         discount = _discount(_lotteryId, _numberOfTickets);
         cost = this.costToBuyTickets(_lotteryId, _numberOfTickets);
         costWithDiscount = cost.sub(discount);
     }
 
-    function getBasicLottoInfo(uint256 _lotteryId) external view returns(
-        LottoInfo memory
-    )
-    {
-        return(
-            allLotteries_[_lotteryId]
-        ); 
+    function getBasicLottoInfo(uint256 _lotteryId) external view returns(LottoInfo memory){
+        return(allLotteries_[_lotteryId]); 
     }
 
     function getMaxRange() external view returns(uint16) {
@@ -289,10 +272,7 @@ contract Lottery is Ownable, Initializable, Testable {
         uint8 _discountForBucketOne,
         uint8 _discountForBucketTwo,
         uint8 _discountForBucketThree
-    )
-        external
-        onlyOwner() 
-    {
+    ) external onlyOwner() {
         require(
             _bucketOneMax != 0 &&
             _bucketTwoMax != 0,
@@ -326,10 +306,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function drawWinningNumbers(
         uint256 _lotteryId, 
         uint256 _seed
-    ) 
-        external 
-        onlyOwner() 
-    {
+    ) external onlyOwner() {
         // Checks that the lottery is past the closing block
         require(
             allLotteries_[_lotteryId].closingTimestamp <= getCurrentTime(),
@@ -387,11 +364,7 @@ contract Lottery is Ownable, Initializable, Testable {
         uint256 _costPerTicket,
         uint256 _startingTimestamp,
         uint256 _closingTimestamp
-    )
-        external
-        onlyOwner()
-        returns(uint256 lotteryId)
-    {
+    ) external onlyOwner() returns(uint256 lotteryId){
         require(
             _prizeDistribution.length == sizeOfLottery_,
             "Invalid distribution"
@@ -460,10 +433,7 @@ contract Lottery is Ownable, Initializable, Testable {
         uint256 _lotteryId,
         uint8 _numberOfTickets,
         uint16[] calldata _chosenNumbersForEachTicket
-    )
-        external
-        notContract()
-    {
+    ) external notContract(){
         // Ensuring the lottery is within a valid time
         require(
             getCurrentTime() >= allLotteries_[_lotteryId].startingTimestamp,
@@ -524,7 +494,6 @@ contract Lottery is Ownable, Initializable, Testable {
         );
     }
 
-
     function claimReward(uint256 _lotteryId, uint256 _tokenId) external notContract() {
         // Checking the lottery is in a valid time for claiming
         require(
@@ -564,10 +533,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function batchClaimRewards(
         uint256 _lotteryId, 
         uint256[] calldata _tokeIds
-    ) 
-        external 
-        notContract()
-    {
+    ) external notContract(){
         require(
             _tokeIds.length <= 50,
             "Batch claim too large"
@@ -587,21 +553,13 @@ contract Lottery is Ownable, Initializable, Testable {
         // Loops through each submitted token
         for (uint256 i = 0; i < _tokeIds.length; i++) {
             // Checks user is owner (will revert entire call if not)
-            require(
-                nft_.getOwnerOfTicket(_tokeIds[i]) == msg.sender,
-                "Only the owner can claim"
-            );
+            require(nft_.getOwnerOfTicket(_tokeIds[i]) == msg.sender, "Only the owner can claim");
             // If token has already been claimed, skip token
-            if(
-                nft_.getTicketClaimStatus(_tokeIds[i])
-            ) {
+            if(nft_.getTicketClaimStatus(_tokeIds[i])) {
                 continue;
             }
             // Claims the ticket (will only revert if numbers invalid)
-            require(
-                nft_.claimTicket(_tokeIds[i], _lotteryId),
-                "Numbers for ticket invalid"
-            );
+            require(nft_.claimTicket(_tokeIds[i], _lotteryId), "Numbers for ticket invalid");
             // Getting the number of matching tickets
             uint8 matchingNumbers = _getNumberOfMatching(
                 nft_.getTicketNumbers(_tokeIds[i]),
@@ -627,11 +585,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function _discount(
         uint256 lotteryId, 
         uint256 _numberOfTickets
-    )
-        internal 
-        view
-        returns(uint256 discountAmount)
-    {
+    ) internal view returns(uint256 discountAmount){
         // Gets the raw cost for the tickets
         uint256 cost = this.costToBuyTickets(lotteryId, _numberOfTickets);
         // Checks if the amount of tickets falls into the first bucket
@@ -651,11 +605,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function _getNumberOfMatching(
         uint16[] memory _usersNumbers, 
         uint16[] memory _winningNumbers
-    )
-        internal
-        pure
-        returns(uint8 noOfMatching)
-    {
+    ) internal pure returns(uint8 noOfMatching){
         // Loops through all wimming numbers
         for (uint256 i = 0; i < _winningNumbers.length; i++) {
             // If the winning numbers and user numbers match
@@ -674,11 +624,7 @@ contract Lottery is Ownable, Initializable, Testable {
     function _prizeForMatching(
         uint8 _noOfMatching,
         uint256 _lotteryId
-    ) 
-        internal  
-        view
-        returns(uint256) 
-    {
+    ) internal view returns(uint256) {
         uint256 prize = 0;
         // If user has no matching numbers their prize is 0
         if(_noOfMatching == 0) {
@@ -694,11 +640,7 @@ contract Lottery is Ownable, Initializable, Testable {
 
     function _split(
         uint256 _randomNumber
-    ) 
-        internal
-        view 
-        returns(uint16[] memory) 
-    {
+    ) internal view returns(uint16[] memory) {
         // Temparary storage for winning numbers
         uint16[] memory winningNumbers = new uint16[](sizeOfLottery_);
         // Loops the size of the number of tickets in the lottery
@@ -710,6 +652,6 @@ contract Lottery is Ownable, Initializable, Testable {
             // Sets the winning number position to a uint16 of random hash number
             winningNumbers[i] = uint16(numberRepresentation.mod(maxValidRange_));
         }
-    return winningNumbers;
+        return winningNumbers;
     }
 }
