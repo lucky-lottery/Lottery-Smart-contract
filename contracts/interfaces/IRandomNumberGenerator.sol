@@ -12,17 +12,15 @@ interface IRandomNumberGenerator {
    /**
     * @notice get a ticket by ticketId
     *
-    * @param _ticketId ticketID
+    * @param _requestId ticketID
     */
-    function getTicketOf(uint256 _ticketId) external view returns (uint256[] memory ticket);
+    function getTicketOf(uint256 _requestId) external view returns (uint256[] memory ticket);
 
     /**
      * @notice get a number by the ticketId and index
      *
-     * @param _ticketId ticketID
+     * @param _requestId ticketID
      * @param _index index a number in the ticket
      */
-    function getNumberOfTicketOf(uint256 _ticketId, uint32 _index) external view returns (uint256 number);
-    
-    function prizeDrawn(uint256 _ticketId) external view returns (bool);
+    function getNumberOfTicketOf(uint256 _requestId, uint32 _index) external view returns (uint256 number);
 }
