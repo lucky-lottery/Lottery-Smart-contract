@@ -1,103 +1,107 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+
 import "./interfaces/IRandomNumberGenerator.sol";
-import "./interfaces/IPancakeSwapLottery.sol";
 
-contract RandomNumberGenerator is VRFConsumerBase, IRandomNumberGenerator, Ownable {
-    using SafeERC20 for IERC20;
+/**
+ * @title The RandomNumberConsumerV2 contract
+ * @notice A contract that gets random values from Chainlink VRF V2
+ */
+contract RandomNumberGenerator is VRFConsumerBaseV2, IRandomNumberGenerator, Ownable, ReentrancyGuard {
+  
+  VRFCoordinatorV2Interface immutable COORDINATOR;
+  LinkTokenInterface immutable LINKTOKEN;
 
-    address public guitarLottery;
-    bytes32 public keyHash;
-    bytes32 public latestRequestId;
-    uint32 public randomResult;
-    uint256 public fee;
-    uint256 public latestLotteryId;
+  // Your subscription ID.
+  uint64 immutable s_subscriptionId;
 
-    /**
-     * @notice Constructor
-     * @dev RandomNumberGenerator must be deployed before the lottery.
-     * Once the lottery contract is deployed, setLotteryAddress must be called.
-     * https://docs.chain.link/docs/vrf-contracts/
-     * @param _vrfCoordinator: address of the VRF coordinator
-     * @param _linkToken: address of the LINK token
-     */
-    constructor(address _vrfCoordinator, address _linkToken) VRFConsumerBase(_vrfCoordinator, _linkToken) {
-        // LINK.mint()
-    }
+  bytes32 immutable s_keyHash;
 
-    /**
-     * @notice Request randomness from a user-provided seed
-     */
-    function getRandomNumber() external override {
-        require(msg.sender == guitarLottery, "Only GuitarLottery");
-        require(keyHash != bytes32(0), "Must have valid key hash");
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK tokens");
+  uint32 immutable s_callbackGasLimit = 500000;
 
-        latestRequestId = requestRandomness(keyHash, fee);
-    }
+  // The default is 3, but you can set this higher.
+  uint16 immutable s_requestConfirmations = 3;
 
-    function getToken(address sender, uint256 amount) external  {
-        LINK.transferFrom(sender, address(this), amount);
-    }
+  // For this example, retrieve 2 random values in one request.
+  // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
+  uint32 immutable s_numWords = 6;
 
-    /**
-     * @notice Change the fee
-     * @param _fee: new fee (in LINK)
-     */
-    function setFee(uint256 _fee) external onlyOwner {
-        fee = _fee;
-    }
+  uint256 public currentTicketId_;
+  uint256 public lastTicketId_;
 
-    /**
-     * @notice Change the keyHash
-     * @param _keyHash: new keyHash
-     */
-    function setKeyHash(bytes32 _keyHash) external onlyOwner {
-        keyHash = _keyHash;
-    }
+  mapping(uint256 => uint256[]) private tickets_;
+  mapping(uint256 => bool) private ticketPrizeDrawn_;
 
-    /**
-     * @notice Set the address for the GuitarLottery
-     * @param _guitarLottery: address of the GuitarSwap lottery
-     */
-    function setLotteryAddress(address _guitarLottery) external onlyOwner {
-        guitarLottery = _guitarLottery;
-    }
+  /**
+   * @notice Constructor inherits VRFConsumerBaseV2
+   *
+   * @param subscriptionId - the subscription ID that this contract uses for funding requests
+   * @param vrfCoordinator - coordinator, check https://docs.chain.link/docs/vrf-contracts/#configurations
+   * @param keyHash - the gas lane to use, which specifies the maximum gas price to bump to
+   */
+  constructor(
+    uint64 subscriptionId,
+    address vrfCoordinator,
+    address link,
+    bytes32 keyHash
+  ) VRFConsumerBaseV2(vrfCoordinator) {
+    COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+    LINKTOKEN = LinkTokenInterface(link);
+    s_keyHash = keyHash;
+    s_subscriptionId = subscriptionId;
+  }
 
-    /**
-     * @notice It allows the admin to withdraw tokens sent to the contract
-     * @param _tokenAddress: the address of the token to withdraw
-     * @param _tokenAmount: the number of token amount to withdraw
-     * @dev Only callable by owner.
-     */
-    function withdrawTokens(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
-        IERC20(_tokenAddress).safeTransfer(address(msg.sender), _tokenAmount);
-    }
+  function requestRandomTicket() external override onlyOwner {
+    // Will revert if subscription is not set and funded.
+    currentTicketId_ = COORDINATOR.requestRandomWords(
+      s_keyHash,
+      s_subscriptionId,
+      s_requestConfirmations,
+      s_callbackGasLimit,
+      s_numWords
+    );
+    ticketPrizeDrawn_[currentTicketId_] = false;
+  }
 
-    /**
-     * @notice View latestLotteryId
-     */
-    function viewLatestLotteryId() external view override returns (uint256) {
-        return latestLotteryId;
-    }
+  function fund(uint96 amount) public {
+      LINKTOKEN.transferAndCall(
+          address(COORDINATOR),
+          amount,
+          abi.encode(s_subscriptionId)
+      );
+  }
 
-    /**
-     * @notice View random result
-     */
-    function viewRandomResult() external view override returns (uint32) {
-        return randomResult;
-    }
+  function getTicketOf(uint256 _ticketId) override external view returns (uint256[] memory ticket){
+      require(ticketPrizeDrawn_[_ticketId] == true, "Sprinning prize");
+      return tickets_[_ticketId];
+  }
+  
+  function getNumberOfTicketOf(uint256 _ticketId, uint32 _index) override external view returns (uint256 number) {
+      require(ticketPrizeDrawn_[_ticketId] == true, "Verification in progress");
 
-    /**
-     * @notice Callback function used by ChainLink's VRF Coordinator
-     */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        require(latestRequestId == requestId, "Wrong requestId");
-        randomResult = uint32(1000000 + (randomness % 1000000));
-        latestLotteryId = IPancakeSwapLottery(guitarLottery).viewCurrentLotteryId();
-    }
+      return ((tickets_[_ticketId][_index] % 55) +1);
+  }
+
+  function prizeDrawn(uint256 _ticketId) override external view returns (bool){
+      return ticketPrizeDrawn_[_ticketId];
+  }
+
+  function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) override internal virtual {
+    require(requestId != 0, "requestId can't be 0");
+
+    lastTicketId_ = requestId;
+    
+    tickets_[requestId] = randomWords;
+
+    ticketPrizeDrawn_[requestId] = true;
+  }
 }
