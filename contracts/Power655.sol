@@ -59,13 +59,13 @@ contract Power655 is Ownable, ReentrancyGuard, ILottery{
     }
 
     struct Ticket {
-        uint8[6] number;
         address owner;
+        uint8[6] number;
     }
 
     // Mapping are cheaper than arrays
     mapping(uint256 => Lottery) private lotteries_;
-    mapping(uint256 => Ticket) private tickets_;
+    mapping(uint256 => mapping(uint256 => Ticket)) private tickets_;
 
     // Keep track of user ticket ids for a given lotteryId
     mapping(address => mapping(uint256 => uint256[])) private userTicketIdsPerLotteryId_;
@@ -102,12 +102,16 @@ contract Power655 is Ownable, ReentrancyGuard, ILottery{
 
     }
 
-    function buyTickets(uint8[] calldata _ticketNumbers) external {
+    function buyTickets(uint8[6] calldata _ticketNumbers) external {
         require(_ticketNumbers.length ==  6, "No ticket specified");
         require(lotteries_[lotteryID_].status == Status.Open, "Lottery is not open");
 
         ticketID_++;
         userTicketIdsPerLotteryId_[msg.sender][ticketID_] = _ticketNumbers;
+        tickets_[lotteryID_][ticketID_] = Ticket({
+            owner: msg.sender,
+            number: _ticketNumbers
+        });
     }
 
     function closeLottery(uint256 _ticketID) external onlyOwner{
@@ -129,12 +133,10 @@ contract Power655 is Ownable, ReentrancyGuard, ILottery{
 
         lotteries_[lotteryID_].specialNumber = uint8(_ticket[6]);
 
-
+        
 
         lotteries_[lotteryID_].status = Status.Completed;
     }
-
-
 
     function currentLotteryId() external view returns (uint256){
         return lotteryID_;
