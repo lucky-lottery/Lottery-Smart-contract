@@ -3,16 +3,16 @@ pragma solidity ^0.8.0;
 
 interface ILottery{
 
-    /**
-     * Change random generator
-     */
-   function changeRandomGenerator(address _randomGenerater) external;
+ /**
+  * Change random generator
+  */
+  function changeRandomGenerator(address _address) external;
 
-   function changePriceOfTikect(uint256 _amount) external;
+  function changePriceOfTikect(uint256 _amount) external;
 
-   function buyTickets(uint32[] calldata _ticketNumbers) external;
+  function buyTickets(uint8[] calldata _ticketNumbers) external;
 
-   function viewCurrentLotteryId() external returns (uint256);
+  function currentLotteryId() external view returns (uint256);
 
-   function lotteryResults(uint256 _requestId, uint256[] memory _ticket) external;
+  function lotteryResults(uint256 _requestId, uint256[] memory _ticket) external;
 }

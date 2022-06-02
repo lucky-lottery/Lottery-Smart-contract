@@ -34,9 +34,13 @@ contract RandomNumberGenerator is VRFConsumerBaseV2, IRandomNumberGenerator, Own
   // The default is 3, but you can set this higher.
   uint16 immutable s_requestConfirmations = 3;
 
-  // For this example, retrieve 2 random values in one request.
-  // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-  uint32 private maxNumberTicket_ = 6;
+  // First 6 numbers to prize first, second, third and Power 1 prize and  number 7 to prize Power 2
+  // Power 1: matching 6 number (excluding number 7)
+  // First: matching 5 number (excluding number 7)
+  // Second: matching 4 number (excluding number 7)
+  // Third: matching 3 number (excluding number 7)
+  // Power 2: matching 6 number (Just correct 5/6 of the first amount + number 7)
+  uint32 private maxNumberTicket_ = 7;
 
   uint256 public requestId_;
 
